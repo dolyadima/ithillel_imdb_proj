@@ -1,0 +1,59 @@
+version: "3.0"
+
+services:
+  db:
+    image: postgres
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/pgdata/
+    volumes:
+      - pgdata:/var/lib/postgresql/pgdata/
+    ports:
+      - "5432:5432"
+  web:
+    build: .
+    image: ithillel-web
+    volumes:
+      - .:/src/
+      - static:/static
+      - media:/media
+    depends_on:
+      - db
+      - rabbitmq
+    env_file:
+      - .env
+    environment:
+        PY_AUTORELOAD: 1
+    command: /bin/bash -c 'pip install -r requirements.txt && ./manage.py runserver 0.0.0.0:8000'
+
+  rabbitmq:
+    image: rabbitmq
+
+  celery_worker:
+    build: .
+    image: ithillel-web
+    env_file:
+      - .env
+    volumes_from:
+      - web
+    depends_on:
+      - db
+      - rabbitmq
+    command: /bin/bash -c 'pip install -r requirements.txt; celery -A config.celery worker'
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static:/static:ro
+      - media:/media:ro
+    links:
+      - web
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata: { }
+  static: { }
+  media: { }

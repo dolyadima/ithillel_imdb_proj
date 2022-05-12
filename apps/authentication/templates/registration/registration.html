@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+    <div class="text-center" style="position: relative;">
+        {% if form.errors %}
+            <p id="invalid_credentials" class="label label-danger">{{ form.errors }}</p>
+            <script>
+                setTimeout(function() {
+                    document.getElementById("invalid_credentials").remove();
+                    const elements = document.getElementsByClassName("errorlist");
+                    while(elements.length > 0){
+                        elements[0].remove();
+                    }
+                }, 4000);
+            </script>
+        {% endif %}
+        <form class="form-signin" method="post">
+          {% csrf_token %}
+          <img class="mb-4" src="{% static 'authentication/img/login.png' %}" alt="" width="72" height="72">
+          <h1 class="h3 mb-3 font-weight-normal">Please register</h1>
+
+          <label for="id_email" class="sr-only">Email address</label>
+          <input type="email" id="id_email" name="email" class="form-control" placeholder="Email address" required="" autofocus="" style="width: 20%; position: absolute; left: 40%;"><br/><br/><br/>
+
+          <label for="id_name" class="sr-only">Name</label>
+          <input type="text" id="id_name" name="name" class="form-control" placeholder="Name" required="" autofocus="" style="width: 20%; position: absolute; left: 40%;"><br/><br/><br/>
+
+          <label for="id_password" class="sr-only">Password</label><br/>
+          <input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required="" style="width: 20%; position: absolute; left: 40%;"><br/><br/>
+
+          <label for="id_password2" class="sr-only">Repeat password</label><br/>
+          <input type="password" id="id_password2" name="password2" class="form-control" placeholder="Repeat password" required="" style="width: 20%; position: absolute; left: 40%;"><br/><br/>
+
+          <button class="btn btn-md btn-secondary btn-block" type="submit">Register</button>
+          <p class="mt-5 mb-3 text-muted">&copy; 2022</p>
+        </form>
+    </div>
+
+{% endblock %}

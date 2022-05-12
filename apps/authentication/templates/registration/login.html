@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+    <div class="text-center" style="position: relative;">
+        {% if form.errors %}
+            <p id="invalid_credentials" class="label label-danger">Пожалуйста, введите правильные email и пароль. Оба поля могут быть чувствительны к регистру.</p>
+            <script>
+                setTimeout(function() {
+                    document.getElementById("invalid_credentials").remove();
+                }, 4000);
+            </script>
+        {% endif %}
+        <form class="form-signin" method="post">
+          {% csrf_token %}
+          <img class="mb-4" src="{% static 'authentication/img/login.png' %}" alt="" width="72" height="72">
+          <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+
+          <label for="id_username" class="sr-only">Email address</label>
+          <input type="email" id="id_username" name="username" class="form-control" placeholder="Email address" required="" autofocus="" style="width: 20%; position: absolute; left: 40%;"><br/><br/><br/>
+
+          <label for="id_password" class="sr-only">Password</label><br/>
+          <input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required="" style="width: 20%; position: absolute; left: 40%;"><br/><br/>
+
+          <button class="btn btn-md btn-secondary btn-block" type="submit">Sign in</button>
+          <button class="btn btn-md btn-secondary btn-block" onclick="location.href='{% url "authentication:registration" %}'" type="button">Register</button>
+          <p class="mt-5 mb-3 text-muted">&copy; 2022</p>
+        </form>
+    </div>
+
+{% endblock %}

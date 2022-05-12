@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="text-center">
+        Your email was activated. Please move forward to login page. <br/>
+        <button class="btn btn-md btn-secondary btn-block" onclick="location.href='{% url "accounts:login" %}'" type="button">Sign in</button>
+    </div>
+
+{% endblock %}

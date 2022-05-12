@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="text-center">
+        You have registered successfully. Please check your email to activate your account. <br/>
+        <button class="btn btn-md btn-secondary btn-block" onclick="location.href='{% url "cinema:movies" %}'" type="button">Main page</button>
+    </div>
+
+{% endblock %}
