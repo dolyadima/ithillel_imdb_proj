@@ -1,8 +1,9 @@
 from django.shortcuts import render
-from apps.cinema.models import Movie, Person, PersonMovie
+from apps.cinema.models import Movie, Person, PersonMovie, MovieRating
+from apps.authentication.models import User
 from django.core.paginator import Paginator
 from django.template.defaulttags import register
-from django.db.models import Max
+from django.db.models import Max, Avg
 
 
 def movies(request):
@@ -40,42 +41,56 @@ def movies(request):
 
 
 def movie_detail(request, imdb_id, edit_save=2, b_page_number=1):
+    user = request.user
     if request.POST:
-        edit_movie = Movie.objects.filter(imdb_id=imdb_id)
-        edit_movie.update(name=request.POST.get('movie_name'))
-        edit_movie.update(genres=request.POST.get('movie_genres'))
-        year = request.POST.get('movie_year')
-        if len(year) == 4 and year != '0000':
-            try:
-                tmp = int(year)
-                edit_movie.update(year=year + '-01-01')
-            except ValueError as e:
-                edit_movie.update(year='1111-01-01')
+        if request.POST.get('rating-stars'):
+            MovieRating.objects.create(movie=Movie.objects.get(imdb_id=imdb_id), user=User.objects.get(id=user.pk), value=request.POST.get('rating-stars'))
+            avg = MovieRating.objects.filter(movie=imdb_id).aggregate(Avg('value'))['value__avg']
+            Movie.objects.filter(imdb_id=imdb_id).update(rating_value=avg)
         else:
-            edit_movie.update(year='1111-01-01')
-        for p_m in PersonMovie.objects.filter(movie_id=imdb_id, category="director"):
-            p_m.delete()
-        for i_p in request.POST.get('imdb_persons').split(','):
-            if i_p != '':
-                if PersonMovie.objects.filter(movie_id=imdb_id, person_id=i_p, category="director").count() == 0:
-                    new_order = PersonMovie.objects.filter(movie_id=imdb_id).aggregate(Max("order"))['order__max']
-                    if new_order is None:
-                        new_order = 1
-                    else:
-                        new_order += 1
-                    PersonMovie.objects.create(movie=Movie.objects.get(imdb_id=imdb_id), person=Person.objects.get(imdb_id=i_p), order=new_order, category="director", job="", characters="\\N")
+            edit_movie = Movie.objects.filter(imdb_id=imdb_id)
+            edit_movie.update(name=request.POST.get('movie_name'))
+            edit_movie.update(genres=request.POST.get('movie_genres'))
+            year = request.POST.get('movie_year')
+            if len(year) == 4 and year != '0000':
+                try:
+                    tmp = int(year)
+                    edit_movie.update(year=year + '-01-01')
+                except ValueError as e:
+                    edit_movie.update(year='1111-01-01')
+            else:
+                edit_movie.update(year='1111-01-01')
+            for p_m in PersonMovie.objects.filter(movie_id=imdb_id, category="director"):
+                p_m.delete()
+            for i_p in request.POST.get('imdb_persons').split(','):
+                if i_p != '':
+                    if PersonMovie.objects.filter(movie_id=imdb_id, person_id=i_p, category="director").count() == 0:
+                        new_order = PersonMovie.objects.filter(movie_id=imdb_id).aggregate(Max("order"))['order__max']
+                        if new_order is None:
+                            new_order = 1
+                        else:
+                            new_order += 1
+                        PersonMovie.objects.create(movie=Movie.objects.get(imdb_id=imdb_id), person=Person.objects.get(imdb_id=i_p), order=new_order, category="director", job="", characters="\\N")
     movie = Movie.objects.filter(imdb_id=imdb_id).first()
-    data = {}
     id_not_found: str = ''
+    data = {}
     if not movie:
         id_not_found = 'Movie with id "' + str(imdb_id) + '" not found...'
     else:
+        rating = Movie.objects.get(imdb_id=imdb_id).rating_value
+        is_voted = False
+        if user.pk:
+            values = MovieRating.objects.filter(movie_id=imdb_id, user_id=user.pk)
+            if values.count() > 0:
+                is_voted = True
         data = {
             'imdb_id': movie.imdb_id,
             'name': movie.name,
             'genres': movie.genres.split(','),
-            'year': str(movie.year)[0:4],
             'director': '',
+            'year': str(movie.year)[0:4],
+            'rating': rating if rating else 0.0,
+            'is_voted': is_voted,
             'participants': [],
         }
         participants = Person.objects.filter(personmovie__movie_id=movie.imdb_id).order_by('name')
@@ -99,7 +114,6 @@ def movie_detail(request, imdb_id, edit_save=2, b_page_number=1):
                 }
                 data['participants'].append(temp)
         data['list_all_person'] = Person.objects.prefetch_related().order_by('name')
-    user = request.user
     return render(request, 'cinema/movie_detail.html', {
         'title': 'Movie Detail',
         'page_active': 'movies',
