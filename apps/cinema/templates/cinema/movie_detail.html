@@ -86,7 +86,7 @@
 
                     {% for participant in data.participants %}
                         <tr>
-                        <td>{{ participant.name }}</td><td>{{ participant.position }}</td><td>{{ participant.role }}</td>
+                        <td><a href="{% url 'cinema:person_detail' participant.imdb_id %}">{{ participant.name }}</a></td><td>{{ participant.position }}</td><td>{{ participant.role }}</td>
                         </tr>
                     {% endfor %}
 
@@ -148,9 +148,9 @@
                   <tbody>
 
                     {% for participant in data.participants %}
-                        <tr>
-                        <td>{{ participant.name }}</td><td>{{ participant.position }}</td><td>{{ participant.role }}</td>
-                        </tr>
+                      <tr>
+                        <td><a href="{% url 'cinema:person_detail' participant.imdb_id %}">{{ participant.name }}</a></td><td>{{ participant.position }}</td><td>{{ participant.role }}</td>
+                      </tr>
                     {% endfor %}
 
                   </tbody>

@@ -154,3 +154,14 @@ def is_disabled(person_imdb_id, movie_participants):
 def persons(request):
     return render(request, 'cinema/persons.html',
                   {'title': 'Persons List', 'page_active': 'persons'})
+
+
+def person_detail(request, imdb_id):
+    person = Person.objects.get(imdb_id=imdb_id)
+    rat_person = person.movies.filter(rating_value__gt=0.0).aggregate(Avg('rating_value'))['rating_value__avg']
+    return render(request, 'cinema/person_detail.html', {
+        'title': 'Person Detail',
+        'page_active': 'persons',
+        'person_name': person.name,
+        'rat_person': rat_person if rat_person else 0.0,
+    })
