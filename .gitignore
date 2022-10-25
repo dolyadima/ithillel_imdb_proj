@@ -3,6 +3,6 @@ __pycache__/
 
 ### VirtualEnv ###
 .idea/
-venv/
+.venv/
 .env
 data_tsv/
